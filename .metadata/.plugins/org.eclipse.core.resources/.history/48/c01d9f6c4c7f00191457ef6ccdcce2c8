@@ -1,0 +1,34 @@
+#include "thread.h"
+#include "KernelS.h"
+
+Queue waitingToDie;
+
+
+
+class Killer: public Thread{
+
+public void run{};
+
+
+~Killer(){waitToComplete();}
+
+};
+
+
+public void run(){
+
+	while(1){
+		lock
+		int i=0;
+			while()
+
+
+		unlock
+
+	}
+
+
+
+
+
+}

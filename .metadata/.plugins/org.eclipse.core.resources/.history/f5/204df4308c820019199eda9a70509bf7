@@ -1,0 +1,16 @@
+#ifndef _MOJ_SEM
+#define _MOJ_SEM
+#include "KernelS.h"
+
+
+class Semaphore {
+public:
+Semaphore(int n){ mySem= new KernelS(n);}
+int wait(int n=0) {return mySem->wait(n);}
+int signal(int n=0) {return mySem->signal(n);}
+~Semaphore(){delete mySem;}
+
+private:
+ KernelSem* mySem;
+};
+#endif

@@ -1,0 +1,206 @@
+/*
+ * testovi.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+
+#include "thread.h"
+#include "KernelS.h"
+#include <iostream.h>
+#include <stdio.h>
+#include "IVTEnt.h"
+#include "KernEv.h"
+
+extern Thread* running;
+extern int requested_context_switch;
+extern int context_switch_disabled;
+
+
+void interrupt timer_interrupt(...);
+#define lock context_switch_disabled++;
+#define unlock if(context_switch_disabled){context_switch_disabled--; if(!context_switch_disabled) if(requested_context_switch)timer_interrupt();};
+
+void syncPrintf(char* s, unsigned i){
+	lock
+	printf(s,i);
+	unlock
+
+}
+
+class TestThread : public Thread
+{
+public:
+
+	TestThread(): Thread() {};
+	~TestThread()
+	{
+		waitToComplete();
+	}
+protected:
+
+	void run();
+
+};
+
+void TestThread::run()
+{
+	syncPrintf("Thread %d: loop1 starts\n", getId());
+
+	for(int i=0;i<32000;i++)
+	{
+		for (int j = 0; j < 32000; j++);
+	}
+
+	syncPrintf("Thread %d: loop1 ends, dispatch\n",getId());
+
+	dispatch();
+
+	syncPrintf("Thread %d: loop2 starts\n",getId());
+
+	for (int k = 0; k < 20000; k++);
+
+	syncPrintf("Thread %d: loop2 ends\n",getId());
+
+
+}
+
+class WaitThread: public Thread
+{
+private:
+	TestThread *t1_,*t2_;
+
+public:
+	WaitThread(TestThread *t1, TestThread *t2): Thread()
+	{
+		t1_ = t1;
+		t2_ = t2;
+	};
+
+	~WaitThread()
+		{
+			waitToComplete();
+		}
+
+protected:
+
+	void run()
+	{
+		syncPrintf("Starting tests...\n");
+		t1_->waitToComplete();
+		syncPrintf("Test 1 completed!\n");
+		t2_->waitToComplete();
+		syncPrintf("Test 2 completed!\n");
+	}
+};
+
+void tick() {}
+
+int userMain(int argc, char** argv)
+{
+	syncPrintf("User main starts\n");
+	TestThread t1,t2;
+	WaitThread w(&t1,&t2);
+	t1.start();
+	t2.start();
+	w.start();
+	syncPrintf("User main ends\n");
+	return 16;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*class NitA:public Thread{
+
+public:
+	NitA():Thread(512,2){}
+	virtual void run(){
+		for(int i = 0;i<10000;i++){
+			//lock
+					//cout<<"Nit a\n";
+			//unlock
+
+		if(i==7)i=0;
+		}
+	}
+
+};
+
+
+
+
+
+
+Thread* temp=new NitA();
+
+
+class NitB:public Thread{
+
+public:
+	NitB():Thread(512,3){}
+	virtual void run(){
+		for(int i = 0;i<10000;i++){
+		//	lock
+		//	cout<<"Nit B\n";
+		//	unlock
+			if(i==7)i=0;
+
+		}
+	}
+
+};
+
+
+
+
+
+
+int UserMain(){
+
+
+  lock
+	cout<<"usao\n";
+  unlock;
+NitA* a=new NitA();
+
+//cout<<"aa\n";
+  NitB* b= new NitB();
+
+lock
+  cout<<"b\n";
+unlock
+  a->start();
+  lock
+ cout<<"astart\n";
+
+unlock
+   //for(int i=0;i<10000;i++){
+
+
+//requested_context_switch=1;
+
+//timer_interrupt();
+  b->start();
+  a->waitToComplete();//promeni ovo,kako da cekas niti ???
+  b->waitToComplete();
+
+
+
+
+return 0;
+}
+
+*/
+

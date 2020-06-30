@@ -1,0 +1,44 @@
+/*
+ * Main.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+#include "thread.h"
+#include <dos.h>
+#include <iostream.h>
+extern Thread* running;
+extern Thread* idleThread;
+void init();
+void restore();
+int userMain(int argc, char* argv[]);
+
+int main(int argc, char* argv[]){
+	//asm cli
+	cout<<"pre\n";
+	init();
+  cout<<"init\n";
+   userMain(argc,argv);
+cout<<"usermain\n";
+
+	restore();
+	asm{
+					cli
+					in      al, 61h         //; Send acknowledgment without
+					or      al, 10000000b   //;   modifying the other bits.
+					out     61h, al         //;
+					and     al, 01111111b   //;
+					out     61h, al         //;
+					mov     al, 20h         //; Send End-of-Interrupt signal
+					out     20h, al         //;
+					sti
+				}
+	//delete running;
+	//delete idleThread;
+
+
+return 0;
+}
+
+
+

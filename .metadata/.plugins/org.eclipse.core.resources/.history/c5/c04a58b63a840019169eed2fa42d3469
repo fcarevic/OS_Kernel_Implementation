@@ -1,0 +1,93 @@
+/*
+ * IVTSet.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+#include <dos.h>
+#include "thread.h"
+#include <iostream.h>
+extern unsigned time_left;
+extern Thread* running;
+void addKiller();
+
+Thread* mainThread;
+
+void interrupt timer_interrupt(...);
+typedef void interrupt (*Pinter)(...);
+
+static Pinter old_rutine;
+
+
+void setTimerInterrupt(){
+//BCC BLOCK IGNORE??
+	asm cli;
+
+	old_rutine=getvect(0x08);
+	setvect(0x08,timer_interrupt);
+	setvect(0x60,old_rutine);
+
+	asm sti;
+
+  asm int 9 ;
+}
+
+
+
+void restoreOldTimerInterrupt(){
+	asm cli;
+
+	setvect(0x08,old_rutine);
+
+	asm sti;
+}
+
+////////////////////////////////////////////////////////
+//MAIN NIT
+
+class Main:public Thread{
+public:
+	virtual void run(){}
+	Main():Thread(0,10){
+
+	}
+};
+
+
+
+
+
+
+
+
+
+void init(){
+	time_left=10;
+	mainThread=running=new Main();
+    addKiller();//samo zbog inicijalizacije killera se dodaje obva metoda
+	cout<<running->getId();
+	setTimerInterrupt();
+
+
+
+}
+
+
+void restore(){
+	//mozda ovo ne radi
+
+	restoreOldTimerInterrupt();
+	asm{
+					cli
+					in      al, 61h         //; Send acknowledgment without
+					or      al, 10000000b   //;   modifying the other bits.
+					out     61h, al         //;
+					and     al, 01111111b   //;
+					out     61h, al         //;
+					mov     al, 20h         //; Send End-of-Interrupt signal
+					out     20h, al         //;
+					sti
+				}
+
+
+}

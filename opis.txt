@@ -1,0 +1,5 @@
+*time slice za 0 da bude beskonacan
+*testiraqj bolje
+*signali dodaj za 0 obradu ,  i testiraj ih,  
+*Test 10 ima gresku????
+*etst 12???

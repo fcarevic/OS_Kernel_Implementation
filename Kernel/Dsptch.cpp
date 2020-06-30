@@ -1,0 +1,117 @@
+#include "thread.h"
+#include <iostream.h>
+#include "SCHEDULE.H"
+//////////////////// deo za semafor
+#include "KernelS.h"
+
+///////////////
+#include <stdio.h>
+
+extern Thread* mainThread;
+
+
+
+//////////////////
+
+void tick();
+void interrupt timer_interrupt(...);
+
+#define lock context_switch_disabled++;
+#define unlock if(context_switch_disabled){context_switch_disabled--; if(!context_switch_disabled) if(requested_context_switch)timer_interrupt();};
+
+
+
+
+
+extern Thread* idleThread;
+
+
+
+ //da se ne bi izvozili simbli
+static unsigned int tss;
+static unsigned int tsp;
+static unsigned int tbp;
+static int flagTimer=0;
+
+
+volatile unsigned int time_left;
+volatile int requested_context_switch=0;
+volatile int context_switch_disabled=0;
+volatile Thread* running;
+//**********************************************************************//
+
+
+
+void interrupt timer_interrupt(...){
+
+ // if(running == idleThread) cout<<"idle\n";
+
+	//AKO UDJES SA REQUESTED CONTEXT SWITCH =1 ONDA ULAZIS U BESKONACNU PETLJU !!!!!
+
+//////////////////////////////////////////////////////////////
+	if(!requested_context_switch){ time_left--;
+	flagTimer=1;
+	}
+	if(running-> myPCB ->time_slice == 0) time_left=1;
+	if(!time_left || requested_context_switch){
+		if(context_switch_disabled==0){
+			requested_context_switch=0;
+
+		asm{
+			mov tss,ss
+			mov tsp,sp
+			mov tbp,bp
+		};
+
+		running->myPCB->SP=tsp;
+		running->myPCB->BP=tbp;
+		running->myPCB->SS=tss;
+		//context_switch_enabled=0;
+
+		//cout<<"dispatch\n";
+
+		//asm cli;
+		//context_switch_enabled=1; //????????????/
+
+  if(running->myPCB->status==PCB::RUNNING && running!=idleThread)
+		{ //ako nije blokirana,onda se stavlja u scheduler
+		running->myPCB->status=PCB::READY;
+		Scheduler::put(running->myPCB);
+		};
+
+	 	 PCB* pcb=	Scheduler::get();
+	  if(!pcb){running=idleThread;running->myPCB->status=PCB::IDLE; }
+	  else{ running=Thread::getThreadById(pcb->pid);
+	  	  running->myPCB->status=PCB::RUNNING;}
+   	//////////////////////////////////**************
+	  	  //DEO ZA SIGNALEEEE
+	  	  lock
+		  asm sti;
+	  	//cout<< "VREDNOST "<<context_switch_disabled<<"\n";
+	  	  running->processAllSignals();
+		  asm cli;
+		  unlock
+		//////////////////////////-*************
+
+		tsp=running->myPCB->SP;
+		tbp=running->myPCB->BP;
+		tss=running->myPCB->SS;
+		time_left=running->myPCB->time_slice;
+		asm    {
+					mov ss,tss
+					mov sp,tsp
+					mov bp,tbp
+				};
+
+		} else requested_context_switch=1;
+	};
+	if(!requested_context_switch && flagTimer) {asm int 60h
+		KernelSem::signalTimerinterrupt();
+	tick();
+	flagTimer=0;}
+	//PROBLEM AKO JE LOKOVANO A BIO TIMER ?????
+
+
+
+}
+

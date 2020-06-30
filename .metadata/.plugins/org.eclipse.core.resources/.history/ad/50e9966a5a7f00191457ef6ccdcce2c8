@@ -1,0 +1,262 @@
+/*
+ * testovi.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+
+#include "thread.h"
+#include "KernelS.h"
+#include <iostream.h>
+#include <stdio.h>
+#include "IVTEnt.h"
+#include "KernEv.h"
+
+extern Thread* running;
+extern int requested_context_switch;
+extern int context_switch_disabled;
+
+
+void interrupt timer_interrupt(...);
+#define lock context_switch_disabled++;
+#define unlock if(context_switch_disabled){context_switch_disabled--; if(!context_switch_disabled) if(requested_context_switch)timer_interrupt();};
+
+void syncPrintf(char* s, unsigned i){
+	lock
+	printf(s,i);
+	unlock
+
+}
+
+void obrada1(){
+
+		cout<<"Obrada signala 1 \n";
+
+}
+
+
+void obrada2(){
+
+		cout<<"Obrada signala 2 \n";
+
+}
+void obrada6(){
+
+		cout<<"Obrada signala 6 \n";
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+const int n = 16;
+
+void tick(){}
+class TThread:public Thread
+{
+public :
+	TThread():Thread(4096,10){}
+	~TThread()
+		{
+			waitToComplete();
+		}
+   void run() {}
+};
+
+class TestThread : public Thread
+{
+public:
+	KernelSem* sem;
+
+	TestThread(KernelSem* s): Thread(4096,10) ,sem(s){};
+	~TestThread()
+	{
+		waitToComplete();
+	}
+protected:
+
+	void run();
+
+};
+
+PREPAREENTRY(9,1);
+
+void TestThread::run()
+{
+		if(sem){
+	registerHandler(1,obrada1);
+	TestThread t2(0);
+	int id= t2.getId();
+
+	t2.start();
+	t2.signal(0);
+	sem->wait(5);
+	Thread* t=getThreadById(id);
+	if(t==0)cout<<"Ne postoji t\n";
+		}
+ /* registerHandler(1,obrada1);
+	lock
+	cout<<"Pre zakljucavanja\n";
+	unlock
+	lock
+			if(sem )cout<<" otac\n";
+			unlock
+
+	int j=-11;
+  if (sem){
+	 j = sem->wait(5);
+	TestThread t(0);
+
+	t.signal(5);
+	t.signal(6);
+	t.registerHandler(5,obrada2);
+	t.registerHandler(2,obrada2);
+	t.start();
+	t.waitToComplete();
+  }
+	lock
+	cout<<j<<" Posle zakljucavanja\n";
+	unlock
+	lock
+		if(sem )cout<<j<<" otac\n";
+		unlock*/
+}
+
+
+int UserMain()
+{
+	//running->dispatch();
+	running->registerHandler(6,obrada6);
+	//running->registerHandler(1,obrada1);
+	KernelSem s(0);
+	TestThread thread(&s);
+
+	//TestThread thread2(&s);
+	//TestThread thread3(&s);
+	//thread.registerHandler(1,obrada1);
+	//thread.registerHandler(2,obrada2);
+	//thread2.registerHandler(1,obrada1);
+	//	thread2.registerHandler(2,obrada2);
+	//	thread3.registerHandler(1,obrada1);
+	//		thread3.registerHandler(2,obrada2);
+
+	//s.wait(5);
+	thread.start();
+	//thread2.start();
+	//thread3.start();
+	thread.signal(6);
+	thread.waitToComplete();
+			//	lock
+							//cout<<s.value()<<"\n";
+
+				//				unlock
+
+	return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*class NitA:public Thread{
+
+public:
+	NitA():Thread(512,2){}
+	virtual void run(){
+		for(int i = 0;i<10000;i++){
+			//lock
+					//cout<<"Nit a\n";
+			//unlock
+
+		if(i==7)i=0;
+		}
+	}
+
+};
+
+
+
+
+
+
+Thread* temp=new NitA();
+
+
+class NitB:public Thread{
+
+public:
+	NitB():Thread(512,3){}
+	virtual void run(){
+		for(int i = 0;i<10000;i++){
+		//	lock
+		//	cout<<"Nit B\n";
+		//	unlock
+			if(i==7)i=0;
+
+		}
+	}
+
+};
+
+
+
+
+
+
+int UserMain(){
+
+
+  lock
+	cout<<"usao\n";
+  unlock;
+NitA* a=new NitA();
+
+//cout<<"aa\n";
+  NitB* b= new NitB();
+
+lock
+  cout<<"b\n";
+unlock
+  a->start();
+  lock
+ cout<<"astart\n";
+
+unlock
+   //for(int i=0;i<10000;i++){
+
+
+//requested_context_switch=1;
+
+//timer_interrupt();
+  b->start();
+  a->waitToComplete();//promeni ovo,kako da cekas niti ???
+  b->waitToComplete();
+
+
+
+
+return 0;
+}
+
+*/
+

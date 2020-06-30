@@ -1,0 +1,64 @@
+#include "thread.h"
+#include "KernelS.h"
+
+
+
+extern int requested_context_switch;
+extern int context_switch_disabled;
+void interrupt timer_interrupt(...);
+
+#define lock context_switch_disabled++;
+#define unlock if(context_switch_disabled){context_switch_disabled--; if(!context_switch_disabled) if(requested_context_switch)timer_interrupt();};
+
+
+
+
+
+
+Queue waitingToDie;
+
+
+
+class Killer: public Thread{
+
+public:
+	void run{};
+
+
+   ~Killer(){waitToComplete();}
+
+};
+
+void Killer::run(){
+
+	while(1){
+		lock
+		int i=0;
+			while(waitingToDie.getInfo(i)){
+				Thread* t=(Thread*)(waitingToDie.getInfo(i));
+					t->unregisterAllHandelrs();
+					t->notifyAllEndWaiting();
+					all_threads.deletee(myPCB);
+					delete [] myPCB->stack;
+					delete myPCB;
+					delete [] handlers;
+					delete [] signalMask;
+
+
+
+
+
+
+
+			}
+
+
+		unlock
+
+	}
+
+
+
+
+
+}

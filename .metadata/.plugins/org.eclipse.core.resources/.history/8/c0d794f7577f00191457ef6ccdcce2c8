@@ -1,0 +1,73 @@
+/*
+ * IVTSet.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+#include <dos.h>
+#include "thread.h"
+#include <iostream.h>
+extern unsigned time_left;
+extern Thread* running;
+Thread* mainThread;
+
+void interrupt timer_interrupt(...);
+typedef void interrupt (*Pinter)(...);
+
+static Pinter old_rutine;
+
+
+void setTimerInterrupt(){
+//BCC BLOCK IGNORE??
+	asm cli;
+
+	old_rutine=getvect(0x08);
+	setvect(0x08,timer_interrupt);
+	setvect(0x60,old_rutine);
+
+	asm sti;
+}
+
+
+
+void restoreOldTimerInterrupt(){
+	asm cli;
+
+	setvect(0x08,old_rutine);
+
+	asm sti;
+}
+
+////////////////////////////////////////////////////////
+//MAIN NIT
+
+class Main:public Thread{
+public:
+	virtual void run(){}
+	Main():Thread(0,10){
+
+	}
+};
+
+
+
+
+
+
+Extern Thread* killer;
+
+
+void init(){
+	time_left=10;
+	mainThread=running=new Main();
+
+	cout<<running->getId();
+	setTimerInterrupt();
+
+
+}
+
+
+void restore(){
+	restoreOldTimerInterrupt();
+}

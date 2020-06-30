@@ -1,0 +1,35 @@
+/*
+ * idle.cpp
+ *
+ *  Created on: May 11, 2019
+ *      Author: OS1
+ */
+#include "thread.h"
+#include <iostream.h>
+extern int context_switch_disabled;
+extern int requested_context_switch;
+void interrupt timer_interrupt(...);
+#define lock context_switch_disabled++;
+#define unlock if(context_switch_disabled){context_switch_disabled--; if(!context_switch_disabled) if(requested_context_switch)timer_interrupt();};
+
+class IdleThread: public Thread {
+
+		public:
+			IdleThread():Thread(30,1){}
+				virtual void run(){
+						for(int i=0;i<10000;i++){
+					//		lock
+						//	cout<<"Idle\n";
+							unlock
+							if(i==9990)i=1;
+							}
+					}
+				~IdleThread(){ waitToComplete();}
+		};
+
+
+
+Thread* idleThread= new IdleThread();
+
+
+

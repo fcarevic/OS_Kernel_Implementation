@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename resource &apos;vezba/semaphor.h&apos; to &apos;semafor.h&apos;" description="Rename resource &apos;semaphor.h&apos;" flags="7" id="org.eclipse.ltk.core.refactoring.rename.resource" input="semaphor.h" name="semafor.h" stamp="1559188862650" updateReferences="true"/>
+</session>

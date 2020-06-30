@@ -1,0 +1,104 @@
+/*
+ * thread.h
+ *
+ *  Created on: Apr 21, 2019
+ *      Author: OS1
+ */
+
+#ifndef MYTHREAD_H_
+#define MYTHREAD_H_
+
+#include "queue.h"
+#include "pcb.h"
+/////////////////////signali
+typedef unsigned SignalId;
+typedef void (*SignalHandler)();
+#define numOfSignals 16
+////////////////////
+
+typedef unsigned long StackSize;
+typedef unsigned int Time; // time, x 55ms
+// default = 2*55ms
+typedef int ID;
+
+class Thread {
+ friend class PCB;
+ friend class KernelSem;
+ friend class KernelEvent;
+ friend void interrupt timer_interrupt(...);
+ void notifyAllEndWaiting();
+ void create_context();
+ static void wrapper(void);
+
+public:
+
+ void start();
+ ID getId();
+ static ID getRunningId();
+ static Thread* getThreadById(ID id);
+ void dispatch();
+ void waitToComplete();
+ virtual ~Thread();
+
+
+protected:
+	 Thread (StackSize stackSize = 4096, Time timeSlice =2);
+	 virtual void run();
+
+private:
+	 static Queue all_threads;
+	 PCB* myPCB;
+
+///////////////////////////////////////////////////////////
+	 //DEO ZA SIGNALE
+
+public:
+void signal(SignalId);
+void registerHandler(SignalId,SignalHandler);
+void unregisterAllHandelrs(SignalId);
+void swap(SignalId, SignalHandler, SignalHandler);
+void blockSignal(SignalId);
+void unblockSignal(SignalId);
+
+static void blockSignalGlobally(SignalId);
+static void unblockSignalGlobally(SignalId);
+
+
+private:
+void AdToDeathList();
+void processAllSignals();
+Queue* handlers;
+Queue signals;
+unsigned int* signalMask;
+unsigned static int* globalSignalMasks;//mozda ovo ne radi
+Thread* parent;
+
+
+
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
+
+
+
+
+#endif /* THREAD_H_ */

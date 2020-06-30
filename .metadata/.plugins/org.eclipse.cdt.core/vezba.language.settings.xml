@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project>
+	<configuration id="0.1048516769" name="Default">
+		<extension point="org.eclipse.cdt.core.LanguageSettingsProvider">
+			<provider id="org.eclipse.cdt.ui.UserLanguageSettingsProvider">
+				<resource project-relative-path="">
+					<entry kind="includePath" name="C:\bc31\INCLUDE">
+						<flag value="BUILTIN"/>
+					</entry>
+				</resource>
+			</provider>
+		</extension>
+	</configuration>
+</project>
